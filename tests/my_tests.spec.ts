@@ -20,7 +20,9 @@ async function fillRegistrationForm (page: Page, { login, email, password }: Reg
   await expect(page.getByRole('textbox', { name: 'Логин:' })).toBeVisible();
   await page.getByRole('textbox', { name: 'Логин:' }).fill(login);
   await page.locator('#regEmail').fill(email);
-  await page.locator('/html/body/main/section[1]/div[2]/form/div[3]/input').fill(password);
+  
+
+  await page.locator('xpath=/html/body/main/section[1]/div[2]/form/div[3]/input').fill(password);
   await page.getByRole('textbox', { name: 'Подтверждение пароля:' }).fill(password);
   await page.getByRole('button', { name: 'Аватар:' }).press('Tab'); // just skip Avatar's input
   await page.getByRole('checkbox', { name: 'Согласен с политикой конфиденциальности' }).check();
@@ -28,8 +30,9 @@ async function fillRegistrationForm (page: Page, { login, email, password }: Reg
   await page.getByRole('button', { name: 'Register' }).click();
 }
 
-test('trying registration with duplicate email (different Login, same E-mail)', async ({ page }) => {
+test('1 Trying registration with duplicate email (different Login, same E-mail)', async ({ page }) => {
   await page.goto('https://pre.pasdel.ru/');
+  await expect(page.locator('xpath=/html/body/main/section[1]/div[2]/form/div[3]/input')).toBeVisible();
   await fillRegistrationForm(page, {
     login: 'o12',
     email: 'o12o12@mail.ru',
@@ -40,10 +43,11 @@ test('trying registration with duplicate email (different Login, same E-mail)', 
   // CHECK
   // registration must not be successful
   const value = await page.locator('#emailCheck').innerText();
-  expect(value).toBe('Email уже используется');
+  await page.screenshot({ path: './test-results/screenshots/1 Trying registration with duplicate email.png', fullPage: true });
+  expect(value).toBe('Email уже используетсяd');
 });
 
-test('trying registration with duplicate login (same Login, different E-mail)', async ({ page }) => {
+test('2 Trying registration with duplicate login (same Login, different E-mail)', async ({ page }) => {
   await page.goto('https://pre.pasdel.ru/');
   await fillRegistrationForm(page, {
     login: 'o12o12',
@@ -55,19 +59,21 @@ test('trying registration with duplicate login (same Login, different E-mail)', 
   // CHECK
   // registration must not be successful
   const value = await page.locator('#registerSuccess').innerText();
+  await page.screenshot({ path: './test-results/screenshots/2 Trying registration with duplicate login.png', fullPage: true });
   expect(value).toBe(''); // instead of 'Регистрация успешна! Теперь вы можете войти'
 });
 
 // in "Главная"
-test.describe('Main Page tab', () => {
+test.describe('3.1-3.3 Main Page tab', () => {
   // before every test we simply go to site
   test.beforeEach(async ({ page }) => {
     await page.goto('https://pre.pasdel.ru/');
   });
 
-  test('does footer have all 3 info (rights, tel, e-mail)?', async ({ page }) => {
+  test('3.1 Does footer have all 3 info (rights, tel, e-mail)?', async ({ page }) => {
     // CHECK
     const footerRights = page.locator('xpath=/html/body/footer/div/p[1]');
+    await page.screenshot({ path: './test-results/screenshots/.png', fullPage: true });
     await expect(footerRights).toBeVisible();
     const footerRightsValue = await footerRights.innerText();
     expect(footerRightsValue).toBe('© 2023 QA Тренажер. Все права защищены.'); // not "защЕщены"
@@ -89,10 +95,11 @@ test.describe('Main Page tab', () => {
     expect(footerEmailValue).toBe('info@qa-train.ru');
   });
 
-  test('does buttons Reg and Auth writted in rus?', async ({ page }) => {
+  test('3.2 Does buttons Reg and Auth writted in rus?', async ({ page }) => {
     // CHECK
     // Auth button
     const buttonAuth = page.locator('xpath=/html/body/main/section[1]/div[1]/form/button');
+    await page.screenshot({ path: './test-results/screenshots/.png', fullPage: true });
     await expect(buttonAuth).toBeVisible();
     const buttonAuthValue = await buttonAuth.innerText();
     expect(buttonAuthValue).toBe('Авторизация');
@@ -104,9 +111,10 @@ test.describe('Main Page tab', () => {
     expect(buttonRegValue).toBe('Регистрация');
   });
 
-  test('is there a vertical gap between Header and Forms section?', async ({ page }) => {
+  test('3.3 Is there a vertical gap between Header and Forms section?', async ({ page }) => {
     // CHECK
     const headerLocator = page.locator('header');
+    await page.screenshot({ path: './test-results/screenshots/.png', fullPage: true });
     await expect(headerLocator).toBeVisible();
     const headerElement = await headerLocator.boundingBox();
 
@@ -122,7 +130,7 @@ test.describe('Main Page tab', () => {
   });
 });
 
-test('right Auth', async ({ page }) => {
+test('4 Right Auth', async ({ page }) => {
   await page.goto('https://pre.pasdel.ru/');
   // E-mail
   await page.locator('#loginEmail').click();
@@ -135,13 +143,13 @@ test('right Auth', async ({ page }) => {
   await page.getByRole('button', { name: 'Auth' }).click();
 
   // CHECK
-  const waitForUrlPromise = page.waitForURL('https://pre.pasdel.ru/dashboard.php');
-  await waitForUrlPromise;
+  await page.waitForURL('https://pre.pasdel.ru/dashboard.php');
+  await page.screenshot({ path: './test-results/screenshots/4 Right Auth.png', fullPage: true });
   expect(page.url()).toContain('https://pre.pasdel.ru/dashboard.php');
 });
 
 // in "Личный кабинет"
-test.describe('Personal Account tab', () => {
+test.describe('5.1-5.4 Personal Account tab', () => {
   // before every test we do right Authorization
   test.beforeEach(async ({ page }) => {
     await page.goto('https://pre.pasdel.ru/');
@@ -160,8 +168,9 @@ test.describe('Personal Account tab', () => {
     expect(page.url()).toContain('https://pre.pasdel.ru/dashboard.php');
   });
 
-  test('does footer have all 3 info (rights, tel, e-mail)?', async ({ page }) => {
+  test('5.1 Does footer have all 3 info (rights, tel, e-mail)?', async ({ page }) => {
     const footerRights = page.locator('footer div p').first();
+    await page.screenshot({ path: './test-results/screenshots/5.1 Does footer have all 3 info (rights, tel, e-mail).png', fullPage: true });
     await expect(footerRights).toBeVisible();
     const footerRightsValue = await footerRights.innerText();
     expect(footerRightsValue).toBe('© 2023 QA Тренажер. Все права защищены.');
@@ -177,15 +186,17 @@ test.describe('Personal Account tab', () => {
     expect(textNumber).toContain(hrefNumber);
   });
 
-  test('does word "ЗарегИстрировано" (not "Е") writed rigthly?', async ({ page }) => {
+  test('5.2 Does word "ЗарегИстрировано" (not "Е") writed rigthly?', async ({ page }) => {
     const h3Element = page.locator('section.dashboard-section .stats-container .stat-card h3');
+    await page.screenshot({ path: './test-results/screenshots/5.2 Does word "ЗарегИстрировано" (not "Е") writed rigthly.png', fullPage: true });
     await expect(h3Element).toBeVisible();
     expect(await h3Element.innerText()).toBe('Зарегистрировано пользователей');
   });
 
-  test('does tab "Главная" exist in the header menu?', async ({ page }) => {
+  test('5.3 Does tab "Главная" exist in the header menu?', async ({ page }) => {
     // does menu bar have 4 tabs?
     const navItems = page.locator('header nav ul > li');
+    await page.screenshot({ path: './test-results/screenshots/5.3 Does tab "Главная" exist in the header menu.png', fullPage: true });
     await expect(navItems).toHaveCount(4);
     // does 1-st tab's value is "Главная"?
     const firstTab = navItems.first();
@@ -193,9 +204,10 @@ test.describe('Personal Account tab', () => {
     expect(await firstTab.getAttribute('value')).toBe('Главная');
   });
 
-  test('does logout tab "Выход" loads main page?', async ({ page }) => {
+  test('5.4 Does logout tab "Выход" loads main page?', async ({ page }) => {
     // CHECK
     const logoutLink = page.getByRole('link', { name: 'Выход' });
+    await page.screenshot({ path: './test-results/screenshots/5.4 Does logout tab "Выход" loads main page.png', fullPage: true });
     await expect(logoutLink).toBeVisible();
     await logoutLink.click();
     await page.waitForURL('https://pre.pasdel.ru/index.php');
